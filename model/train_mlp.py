@@ -1,0 +1,96 @@
+import os
+import json
+import numpy as np
+import pandas as pd
+from datetime import datetime
+
+import keras
+from keras import layers
+from sklearn.metrics import roc_auc_score, average_precision_score, confusion_matrix, classification_report
+
+from .preprocessing import load_cleaned_dataset, make_preprocessor, split_data, fit_transform_preprocessor, persist_artifacts, TARGET
+
+
+def build_mlp(input_dim: int) -> keras.Model:
+    model = keras.Sequential([
+        layers.Input(shape=(input_dim,)),
+        layers.Dense(64, activation="relu"),
+        layers.Dropout(0.2),
+        layers.Dense(32, activation="relu"),
+        layers.Dropout(0.2),
+        layers.Dense(1, activation="sigmoid"),
+    ])
+    model.compile(
+        optimizer=keras.optimizers.Adam(learning_rate=1e-3),
+        loss=keras.losses.BinaryCrossentropy(),
+        metrics=["accuracy", keras.metrics.AUC(name="auc")],
+    )
+    return model
+
+
+def train_and_evaluate(root_dir: str) -> None:
+    df = load_cleaned_dataset(root_dir)
+
+    # Splits
+    X_train, X_test, y_train, y_test = split_data(df)
+
+    # Preprocess
+    pre = make_preprocessor()
+    X_train_t, X_test_t, feature_names = fit_transform_preprocessor(pre, X_train, X_test)
+
+    # Build model
+    model = build_mlp(X_train_t.shape[1])
+
+    # Artifacts dir
+    version = datetime.now().strftime("model_v%Y%m%d_%H%M%S")
+    out_dir = persist_artifacts(root_dir, version, pre, feature_names)
+
+    # Callbacks
+    ckpt_path = os.path.join(out_dir, "model.keras")
+    callbacks = [
+        keras.callbacks.EarlyStopping(monitor="val_auc", patience=10, mode="max", restore_best_weights=True),
+        keras.callbacks.ModelCheckpoint(ckpt_path, monitor="val_auc", mode="max", save_best_only=True),
+    ]
+
+    # Train
+    history = model.fit(
+        X_train_t, y_train.values,
+        epochs=200,
+        batch_size=64,
+        validation_split=0.2,
+        callbacks=callbacks,
+        verbose=1,
+    )
+
+    # Best model already restored via EarlyStopping
+    # Evaluate
+    test_metrics = model.evaluate(X_test_t, y_test.values, verbose=0)
+    y_prob = model.predict(X_test_t, verbose=0).ravel()
+    y_pred = (y_prob >= 0.5).astype(int)
+
+    # Extra metrics
+    roc_auc = roc_auc_score(y_test.values, y_prob)
+    pr_auc = average_precision_score(y_test.values, y_prob)
+    cm = confusion_matrix(y_test.values, y_pred)
+    cls_rep = classification_report(y_test.values, y_pred, output_dict=True)
+
+    # Save metrics & history
+    metrics = {
+        "keras_evaluate": {"loss": float(test_metrics[0]), "accuracy": float(test_metrics[1]), "auc": float(test_metrics[2])},
+        "sklearn": {"roc_auc": float(roc_auc), "pr_auc": float(pr_auc), "confusion_matrix": cm.tolist(), "classification_report": cls_rep},
+    }
+    with open(os.path.join(out_dir, "metrics.json"), "w", encoding="utf-8") as f:
+        json.dump(metrics, f, ensure_ascii=False, indent=2)
+
+    # Save training history
+    hist = {k: [float(v) for v in vals] for k, vals in history.history.items()}
+    with open(os.path.join(out_dir, "history.json"), "w", encoding="utf-8") as f:
+        json.dump(hist, f, ensure_ascii=False, indent=2)
+
+    print(f"Artifacts saved to: {out_dir}")
+
+
+if __name__ == "__main__":
+    ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+    ROOT_DIR = os.path.dirname(ROOT_DIR)  # go up to project root
+    train_and_evaluate(ROOT_DIR)

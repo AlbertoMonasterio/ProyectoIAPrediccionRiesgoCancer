@@ -1,3 +1,17 @@
 Sa🐓
-Ejecutar:
-pip install -r requeriments.txt
+How to run
+Prepare the cleaned CSV (if you haven’t yet)
+
+Run your existing data_processor.py to generate cleaned_dataset.csv.
+Install dependencies
+pip install -r requirements.txt
+
+Use your PowerShell and run a one-time install:
+Optional command:
+pip install -r requirements.txt
+Train the MLP
+
+Run from the project root using module mode so relative imports work:
+Optional command:
+python -m model.train_mlp
+Artifacts and metrics will be saved under saved_artifacts/model_vYYYYMMDD_HHMMSS/.
