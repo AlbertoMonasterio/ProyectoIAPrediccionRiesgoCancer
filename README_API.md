@@ -62,11 +62,17 @@ Opción recomendada (script que arranca el servidor y abre la UI vacía):
 
 Qué hace el script `run_predict.ps1`:
 
-- Detecta el python del venv (revisa `.venv`, `venv` y `C:\venv\projenv`).
-- Arranca uvicorn en background.
-- Espera activamente hasta N segundos a que el puerto 8000 responda.
-- Abre el navegador en `http://127.0.0.1:8000/?blank=1` (el `?blank=1` hace que el frontend presente el formulario vacío).
-- Presionando Enter en la terminal el script detiene el servidor.
+- Busca el intérprete Python del venv en este orden: `C:\Users\sayag\venvs\iaproj\Scripts\python.exe`, `C:\venv\projenv\Scripts\python.exe`, luego `.venv` y `venv` dentro del repo.
+- Verifica que existan artefactos bajo `saved_artifacts/model_v*/` y que estén `model.keras` y `preprocessor.pkl`. Si faltan, aborta con un mensaje claro (no se queda esperando).
+- Arranca Uvicorn en background con el directorio de trabajo del repo y captura logs en `logs/uvicorn_stdout.log` y `logs/uvicorn_stderr.log`.
+- Espera activamente hasta N segundos a que el puerto 8000 responda. Si el proceso termina antes, imprime las últimas líneas del log y aborta (no se queda en loop).
+- Si el puerto responde, abre el navegador en `http://127.0.0.1:8000/?blank=1` (el `?blank=1` hace que el frontend presente el formulario vacío).
+- Presionando Enter en la terminal, el script detiene el servidor.
+
+Opciones útiles:
+
+- `-WaitSeconds <n>`: cuánto esperar a que el puerto 8000 responda (por defecto 30).
+- `-PythonPath "RUTA\A\python.exe"`: fuerza el intérprete a usar (por ejemplo, `"$env:USERPROFILE\venvs\iaproj\Scripts\python.exe"`).
 
 Si prefieres arrancar manualmente (ver logs en la terminal):
 
@@ -75,6 +81,12 @@ C:\venv\projenv\Scripts\python -m uvicorn app.main:app --reload --port 8000
 ```
 
 Visita `http://127.0.0.1:8000/docs` para probar la API desde Swagger UI o abre la UI en `/` para usar el formulario.
+
+Diagnóstico rápido (si no levanta):
+
+- Revisa que exista `saved_artifacts/model_v.../` con `model.keras` y `preprocessor.pkl`.
+- Abre `logs/uvicorn_stdout.log` y `logs/uvicorn_stderr.log` para ver el motivo del fallo.
+- Prueba a lanzar manualmente con tu venv corto: `& "$env:USERPROFILE\venvs\iaproj\Scripts\python.exe" -m uvicorn app.main:app --host 127.0.0.1 --port 8000`.
 
 7) Probar el endpoint `/predict`
 

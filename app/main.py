@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 import os
+import unicodedata
 import glob
 import joblib
 import json
@@ -84,14 +85,114 @@ def health():
     return {"status": "ok", "artifact_dir": ARTIFACT_DIR}
 
 
+@app.get("/meta")
+def meta():
+    """Devuelve metadatos del modelo para alinear el frontend: columnas categóricas y sus categorías,
+    además de columnas numéricas y binarias (si aplica).
+    """
+    cat_cols = ["gender", "alcohol_consumption", "smoking_status", "physical_activity_level"]
+    categories = {}
+    try:
+        ohe = preproc.named_transformers_.get("cat")
+        if hasattr(ohe, "categories_"):
+            for col, cats in zip(cat_cols, ohe.categories_):
+                categories[col] = list(map(str, cats))
+    except Exception:
+        categories = {}
+    return {
+        "categories": categories,
+        "notes": "Las categorías devueltas reflejan exactamente lo conocido por el modelo."
+    }
+
+
 @app.post("/predict")
-def predict(data: PatientData):
+def predict(data: PatientData, debug: bool = False):
     # Convertir los inputs: calcular BMI a partir de altura y peso y crear el dict esperado
     try:
         height_m = data.height_cm / 100.0
         bmi = data.weight_kg / (height_m ** 2) if height_m > 0 else 0.0
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Error calculando BMI: {e}")
+
+    # Normalización de categorías: mapear etiquetas del frontend (posible español) a las categorías 
+    # que conoció el modelo durante el entrenamiento.
+    try:
+        from sklearn.preprocessing import OneHotEncoder  # type: ignore
+        ohe = preproc.named_transformers_.get("cat")
+        cat_cols = ["gender", "alcohol_consumption", "smoking_status", "physical_activity_level"]
+        allowed = {}
+        if hasattr(ohe, "categories_"):
+            for col, cats in zip(cat_cols, ohe.categories_):
+                allowed[col] = {str(c).strip().lower(): str(c) for c in cats}
+        # Diccionarios de sinónimos ES->EN (ajustados a categorías del dataset)
+        syn_gender = {"masculino": "Male", "femenino": "Female"}
+        # Mapeo canónico: español -> categorías del dataset
+        # Recomendado para el FRONT: usar etiquetas "Nunca", "Ocasional", "Regular" o enviar directamente
+        # los valores en inglés "Never", "Occasional", "Regular".
+        syn_alcohol = {
+            # correctos (preferidos)
+            "nunca": "Never",
+            "ocasionalmente": "Occasional",
+            "regularmente": "Regular",
+        }
+        syn_smoke = {
+            # Nunca
+            "nunca": "Never",
+            # Former (antes, pero dejé)
+            "ex-fumador": "Former",
+            # Current (actualmente)
+            "actualmente": "Current",
+        }
+        syn_activity = {
+            "bajo (sedentario)": "Low",
+            "moderado": "Moderate",
+            "alto (activo)": "High",
+        }
+
+        def _strip_accents(s: str) -> str:
+            try:
+                return ''.join(c for c in unicodedata.normalize('NFD', s) if unicodedata.category(c) != 'Mn')
+            except Exception:
+                return s
+
+        def normalize(value: str, synonyms: dict, allowed_map: dict):
+            if value is None:
+                return value
+            s = str(value).strip()
+            low = _strip_accents(s.lower())
+            # aplicar sinónimos si existen
+            s2 = synonyms.get(low, s)
+            low2 = _strip_accents(str(s2).strip().lower())
+            # ajustar al casing exacto conocido por el encoder si coincide
+            return allowed_map.get(low2, s2)
+
+        # Regla extra específica para alcohol: detección por palabras clave
+        def normalize_alcohol(value: str, allowed_map: dict):
+            if value is None:
+                return value
+            raw = str(value).strip()
+            low = _strip_accents(raw.lower())
+            # Primero, si ya es una de las esperadas
+            if low in ("never","occasional","regular"):
+                return allowed_map.get(low, raw)
+            # Niveles numéricos ad-hoc
+            if low in ("0","none","sin","no"):
+                return allowed_map.get("never", "Never")
+            # Palabras clave
+            if any(k in low for k in ["nunc"]):
+                return allowed_map.get("never", "Never")
+            if any(k in low for k in ["baj","ocasion"]):
+                return allowed_map.get("occasional", "Occasional")
+            if any(k in low for k in ["mod","alt","frecuencia","intensidad"]):
+                return allowed_map.get("regular", "Regular")
+            # fallback a sinónimos generales
+            return normalize(raw, syn_alcohol, allowed_map)
+
+    except Exception:
+        # si algo falla, seguimos sin normalizar (preproc.handle_unknown='ignore' mitigará)
+        allowed = {}
+        normalize = lambda v, syn, mapping: v  # type: ignore
+        syn_gender = syn_alcohol = syn_smoke = syn_activity = {}
 
     row = {
         "age": data.age,
@@ -103,10 +204,10 @@ def predict(data: PatientData):
         "cirrhosis_history": data.cirrhosis_history,
         "family_history_cancer": data.family_history_cancer,
         "diabetes": data.diabetes,
-        "gender": data.gender,
-        "alcohol_consumption": data.alcohol_consumption,
-        "smoking_status": data.smoking_status,
-        "physical_activity_level": data.physical_activity_level,
+        "gender": normalize(getattr(data, "gender", None), syn_gender, allowed.get("gender", {})),
+    "alcohol_consumption": normalize_alcohol(getattr(data, "alcohol_consumption", None), allowed.get("alcohol_consumption", {})),
+        "smoking_status": normalize(getattr(data, "smoking_status", None), syn_smoke, allowed.get("smoking_status", {})),
+        "physical_activity_level": normalize(getattr(data, "physical_activity_level", None), syn_activity, allowed.get("physical_activity_level", {})),
     }
 
     df = pd.DataFrame([row])
@@ -128,4 +229,7 @@ def predict(data: PatientData):
     else:
         action = "Alerta: Cita clínica inmediata."
 
-    return {"risk_pct": pct, "action": action}
+    result = {"risk_pct": pct, "action": action}
+    if debug:
+        result["normalized_input"] = row
+    return result
