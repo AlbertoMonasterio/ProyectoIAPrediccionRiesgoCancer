@@ -1,0 +1,15 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Virtual environments
+venv/
+.venv/
+C:\venv\projenv/
+
+# VS Code
+.vscode/
+
+# Ignore large artifacts by default (uncomment if you don't want to version models)
+# saved_artifacts/

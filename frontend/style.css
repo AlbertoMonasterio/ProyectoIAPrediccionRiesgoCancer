@@ -1,0 +1,28 @@
+body { font-family: Arial, sans-serif; background: #fafafa; }
+.container { max-width: 740px; margin: 40px auto; padding: 20px; border-radius: 8px; background: #fff; box-shadow: 0 6px 18px rgba(0,0,0,0.06); }
+
+label { display: block; margin: 10px 0; }
+label input, label select { display: block; margin-top: 6px; padding: 8px; width: 100%; box-sizing: border-box; }
+small.help { display: block; color: #666; font-size: 0.9em; margin-top: 4px; }
+
+button { margin-top: 12px; padding: 10px 14px; background: #2b6cb0; color: white; border: none; border-radius: 6px; cursor: pointer; }
+button:hover { opacity: 0.95 }
+
+.result { margin-top: 16px; padding: 12px; border-radius: 6px; }
+.low { background: #e6ffed; border-left: 6px solid #2ecc71; }
+.high { background: #fff0f0; border-left: 6px solid #e74c3c; }
+.error { background: #fff4e6; color: #ad5b00; }
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+	.container { margin: 16px; padding: 14px; }
+	h1 { font-size: 1.2rem; }
+	label input, label select { padding: 10px; font-size: 0.95rem; }
+	button { width: 100%; padding: 12px; }
+}
+
+@media (max-width: 380px) {
+	h1 { font-size: 1.05rem; }
+	.intro { font-size: 0.95rem; }
+	label { margin: 8px 0; }
+}

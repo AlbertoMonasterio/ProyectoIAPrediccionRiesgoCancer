@@ -5,3 +5,7 @@ numpy>=1.24.0,<3.0.0
 tensorflow>=2.12.0,<3.0.0
 matplotlib>=3.7.0,<4.0.0
 seaborn>=0.12.0,<0.13.0
+
+# FastAPI for serving the model
+fastapi>=0.95.0
+uvicorn[standard]>=0.22.0

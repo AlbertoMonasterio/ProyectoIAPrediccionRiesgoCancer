@@ -23,7 +23,9 @@ def load_cleaned_dataset(root_dir: str) -> pd.DataFrame:
 
 
 def make_preprocessor() -> ColumnTransformer:
-    ohe = OneHotEncoder(handle_unknown="ignore", sparse=False, drop=None)
+    # scikit-learn renamed the `sparse` argument to `sparse_output` in newer versions.
+    # Use `sparse_output=False` to get a dense array output and maintain compatibility.
+    ohe = OneHotEncoder(handle_unknown="ignore", sparse_output=False, drop=None)
     scaler = StandardScaler()
 
     pre = ColumnTransformer(
