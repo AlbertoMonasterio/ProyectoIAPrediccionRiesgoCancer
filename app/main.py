@@ -33,6 +33,16 @@ PREPROC_PATH = os.path.join(ARTIFACT_DIR, "preprocessor.pkl")
 model = keras.models.load_model(MODEL_PATH)
 preproc = joblib.load(PREPROC_PATH)
 
+# Cargar nombres de features (orden exacto que espera el modelo)
+FEATURE_NAMES_PATH = os.path.join(ARTIFACT_DIR, "feature_names.json")
+FEATURE_NAMES = []
+try:
+    with open(FEATURE_NAMES_PATH, "r", encoding="utf-8") as f:
+        _j = json.load(f)
+        FEATURE_NAMES = _j.get("feature_names", [])
+except Exception:
+    FEATURE_NAMES = []
+
 
 # Pydantic model que refleja las columnas de entrada
 class PatientData(BaseModel):
@@ -196,4 +206,40 @@ def predict(data: PatientData, debug: bool = False):
     result = {"risk_pct": pct, "action": action}
     if debug:
         result["normalized_input"] = row
+        # Incluir categorías one-hot activas por columna categórica (robusto y sin ambigüedad de underscores)
+        try:
+            from sklearn.preprocessing import OneHotEncoder  # type: ignore
+            ohe = preproc.named_transformers_.get("cat")
+            cat_cols = ["gender", "alcohol_consumption", "smoking_status", "physical_activity_level"]
+            if hasattr(ohe, "get_feature_names_out"):
+                cat_feature_names = list(ohe.get_feature_names_out(cat_cols))
+            else:
+                cat_feature_names = list(ohe.get_feature_names(cat_cols))
+
+            # Transformación solo del bloque categórico para alinear nombres y valores 1:1
+            df_cat = df[cat_cols]
+            cat_vec = ohe.transform(df_cat)
+            # Convertir a lista plana para acceso cómodo
+            if hasattr(cat_vec, "toarray"):
+                cat_row = cat_vec.toarray()[0].tolist()
+            else:
+                cat_row = cat_vec[0].tolist()
+
+            idx_map = {name: i for i, name in enumerate(cat_feature_names)}
+            active = {}
+            for col in cat_cols:
+                prefix = f"{col}_"
+                candidates = [n for n in cat_feature_names if n.startswith(prefix)]
+                chosen = None
+                for n in candidates:
+                    i = idx_map[n]
+                    if float(cat_row[i]) >= 0.5:
+                        # quitar prefijo exacto del nombre en vez de split por '_'
+                        chosen = n[len(prefix):]
+                        break
+                active[col] = chosen
+            result["encoded_onehot_active"] = active
+        except Exception:
+            # No bloquear si algo falla
+            pass
     return result
