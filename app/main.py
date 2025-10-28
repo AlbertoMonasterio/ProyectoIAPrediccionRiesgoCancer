@@ -114,8 +114,7 @@ def predict(data: PatientData, debug: bool = False):
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Error calculando BMI: {e}")
 
-    # Normalización de categorías: mapear etiquetas del frontend (posible español) a las categorías 
-    # que conoció el modelo durante el entrenamiento.
+    # Normalización de categorías: mapeo directo de etiquetas fijas del formulario (ES) a categorías del modelo (EN)
     try:
         from sklearn.preprocessing import OneHotEncoder  # type: ignore
         ohe = preproc.named_transformers_.get("cat")
@@ -124,74 +123,39 @@ def predict(data: PatientData, debug: bool = False):
         if hasattr(ohe, "categories_"):
             for col, cats in zip(cat_cols, ohe.categories_):
                 allowed[col] = {str(c).strip().lower(): str(c) for c in cats}
-        # Diccionarios de sinónimos ES->EN (ajustados a categorías del dataset)
-        syn_gender = {"masculino": "Male", "femenino": "Female"}
-        # Mapeo canónico: español -> categorías del dataset
-        # Recomendado para el FRONT: usar etiquetas "Nunca", "Ocasional", "Regular" o enviar directamente
-        # los valores en inglés "Never", "Occasional", "Regular".
-        syn_alcohol = {
-            # correctos (preferidos)
-            "nunca": "Never",
-            "ocasionalmente": "Occasional",
-            "regularmente": "Regular",
-        }
-        syn_smoke = {
-            # Nunca
-            "nunca": "Never",
-            # Former (antes, pero dejé)
-            "ex-fumador": "Former",
-            # Current (actualmente)
-            "actualmente": "Current",
-        }
-        syn_activity = {
-            "bajo (sedentario)": "Low",
-            "moderado": "Moderate",
-            "alto (activo)": "High",
-        }
 
-        def _strip_accents(s: str) -> str:
-            try:
-                return ''.join(c for c in unicodedata.normalize('NFD', s) if unicodedata.category(c) != 'Mn')
-            except Exception:
-                return s
+        # Etiquetas fijas que envía el formulario (ES) -> categorías del modelo (EN)
+        syn_gender = {"Masculino": "Male", "Femenino": "Female"}
+        syn_alcohol = {"Nunca": "Never", "Ocasionalmente": "Occasional", "Regularmente": "Regular"}
+        syn_smoke = {"Nunca": "Never", "Ex-fumador": "Former", "Actualmente": "Current"}
+        syn_activity = {"Bajo (sedentario)": "Low", "Moderado": "Moderate", "Alto (activo)": "High"}
 
-        def normalize(value: str, synonyms: dict, allowed_map: dict):
+        def normalize_choice(value: str, mapping: dict, allowed_map: dict):
             if value is None:
                 return value
             s = str(value).strip()
-            low = _strip_accents(s.lower())
-            # aplicar sinónimos si existen
-            s2 = synonyms.get(low, s)
-            low2 = _strip_accents(str(s2).strip().lower())
-            # ajustar al casing exacto conocido por el encoder si coincide
-            return allowed_map.get(low2, s2)
+            if s in mapping:
+                return mapping[s]
+            low = s.lower()
+            if low in allowed_map:  # ya viene en EN (cualquier casing)
+                return allowed_map[low]
+            # fallback case-insensitive contra mapping
+            for k, v in mapping.items():
+                if k.lower() == low:
+                    return v
+            return s
 
-        # Regla extra específica para alcohol: detección por palabras clave
+        # alias para usar abajo
+        normalize = normalize_choice
         def normalize_alcohol(value: str, allowed_map: dict):
-            if value is None:
-                return value
-            raw = str(value).strip()
-            low = _strip_accents(raw.lower())
-            # Primero, si ya es una de las esperadas
-            if low in ("never","occasional","regular"):
-                return allowed_map.get(low, raw)
-            # Niveles numéricos ad-hoc
-            if low in ("0","none","sin","no"):
-                return allowed_map.get("never", "Never")
-            # Palabras clave
-            if any(k in low for k in ["nunc"]):
-                return allowed_map.get("never", "Never")
-            if any(k in low for k in ["baj","ocasion"]):
-                return allowed_map.get("occasional", "Occasional")
-            if any(k in low for k in ["mod","alt","frecuencia","intensidad"]):
-                return allowed_map.get("regular", "Regular")
-            # fallback a sinónimos generales
-            return normalize(raw, syn_alcohol, allowed_map)
+            return normalize_choice(value, syn_alcohol, allowed_map)
 
     except Exception:
         # si algo falla, seguimos sin normalizar (preproc.handle_unknown='ignore' mitigará)
         allowed = {}
         normalize = lambda v, syn, mapping: v  # type: ignore
+        def normalize_alcohol(v, m):
+            return v
         syn_gender = syn_alcohol = syn_smoke = syn_activity = {}
 
     row = {
@@ -205,7 +169,7 @@ def predict(data: PatientData, debug: bool = False):
         "family_history_cancer": data.family_history_cancer,
         "diabetes": data.diabetes,
         "gender": normalize(getattr(data, "gender", None), syn_gender, allowed.get("gender", {})),
-    "alcohol_consumption": normalize_alcohol(getattr(data, "alcohol_consumption", None), allowed.get("alcohol_consumption", {})),
+        "alcohol_consumption": normalize_alcohol(getattr(data, "alcohol_consumption", None), allowed.get("alcohol_consumption", {})),
         "smoking_status": normalize(getattr(data, "smoking_status", None), syn_smoke, allowed.get("smoking_status", {})),
         "physical_activity_level": normalize(getattr(data, "physical_activity_level", None), syn_activity, allowed.get("physical_activity_level", {})),
     }
