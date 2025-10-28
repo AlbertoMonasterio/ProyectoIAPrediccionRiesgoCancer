@@ -1,0 +1,71 @@
+INFO:     127.0.0.1:50830 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+
+[1m1/1[0m [32m====================[0m[37m[0m [1m0s[0m 87ms/step
+[1m1/1[0m [32m====================[0m[37m[0m [1m0s[0m 107ms/step
+INFO:     127.0.0.1:65263 - "POST /predict?debug=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60454 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60454 - "GET /meta HTTP/1.1" 200 OK
+
+[1m1/1[0m [32m====================[0m[37m[0m [1m0s[0m 24ms/step
+[1m1/1[0m [32m====================[0m[37m[0m [1m0s[0m 51ms/step
+INFO:     127.0.0.1:60454 - "POST /predict?debug=true HTTP/1.1" 200 OK
+
+[1m1/1[0m [32m====================[0m[37m[0m [1m0s[0m 20ms/step
+[1m1/1[0m [32m====================[0m[37m[0m [1m0s[0m 48ms/step
+INFO:     127.0.0.1:60458 - "POST /predict?debug=true HTTP/1.1" 200 OK
+
+[1m1/1[0m [32m====================[0m[37m[0m [1m0s[0m 18ms/step
+[1m1/1[0m [32m====================[0m[37m[0m [1m0s[0m 40ms/step
+INFO:     127.0.0.1:60458 - "POST /predict?debug=true HTTP/1.1" 200 OK
+
+[1m1/1[0m [32m====================[0m[37m[0m [1m0s[0m 20ms/step
+[1m1/1[0m [32m====================[0m[37m[0m [1m0s[0m 44ms/step
+INFO:     127.0.0.1:60458 - "POST /predict?debug=true HTTP/1.1" 200 OK
+
+[1m1/1[0m [32m====================[0m[37m[0m [1m0s[0m 21ms/step
+[1m1/1[0m [32m====================[0m[37m[0m [1m0s[0m 37ms/step
+INFO:     127.0.0.1:60458 - "POST /predict?debug=true HTTP/1.1" 200 OK
+
+[1m1/1[0m [32m====================[0m[37m[0m [1m0s[0m 21ms/step
+[1m1/1[0m [32m====================[0m[37m[0m [1m0s[0m 45ms/step
+INFO:     127.0.0.1:60458 - "POST /predict?debug=true HTTP/1.1" 200 OK
+
+[1m1/1[0m [32m====================[0m[37m[0m [1m0s[0m 22ms/step
+[1m1/1[0m [32m====================[0m[37m[0m [1m0s[0m 47ms/step
+INFO:     127.0.0.1:60458 - "POST /predict?debug=true HTTP/1.1" 200 OK
+
+[1m1/1[0m [32m====================[0m[37m[0m [1m0s[0m 21ms/step
+[1m1/1[0m [32m====================[0m[37m[0m [1m0s[0m 44ms/step
+INFO:     127.0.0.1:60458 - "POST /predict?debug=true HTTP/1.1" 200 OK
+
+[1m1/1[0m [32m====================[0m[37m[0m [1m0s[0m 23ms/step
+[1m1/1[0m [32m====================[0m[37m[0m [1m0s[0m 48ms/step
+INFO:     127.0.0.1:60458 - "POST /predict?debug=true HTTP/1.1" 200 OK
+
+[1m1/1[0m [32m====================[0m[37m[0m [1m0s[0m 20ms/step
+[1m1/1[0m [32m====================[0m[37m[0m [1m0s[0m 44ms/step
+INFO:     127.0.0.1:60458 - "POST /predict?debug=true HTTP/1.1" 200 OK
+
+[1m1/1[0m [32m====================[0m[37m[0m [1m0s[0m 20ms/step
+[1m1/1[0m [32m====================[0m[37m[0m [1m0s[0m 67ms/step
+INFO:     127.0.0.1:60458 - "POST /predict?debug=true HTTP/1.1" 200 OK
+
+[1m1/1[0m [32m====================[0m[37m[0m [1m0s[0m 26ms/step
+[1m1/1[0m [32m====================[0m[37m[0m [1m0s[0m 49ms/step
+INFO:     127.0.0.1:60458 - "POST /predict?debug=true HTTP/1.1" 200 OK
+
+[1m1/1[0m [32m====================[0m[37m[0m [1m0s[0m 21ms/step
+[1m1/1[0m [32m====================[0m[37m[0m [1m0s[0m 46ms/step
+INFO:     127.0.0.1:60458 - "POST /predict?debug=true HTTP/1.1" 200 OK
+
+[1m1/1[0m [32m====================[0m[37m[0m [1m0s[0m 27ms/step
+[1m1/1[0m [32m====================[0m[37m[0m [1m0s[0m 48ms/step
+INFO:     127.0.0.1:60458 - "POST /predict?debug=true HTTP/1.1" 200 OK
+
+[1m1/1[0m [32m====================[0m[37m[0m [1m0s[0m 27ms/step
+[1m1/1[0m [32m====================[0m[37m[0m [1m0s[0m 50ms/step
+INFO:     127.0.0.1:60458 - "POST /predict?debug=true HTTP/1.1" 200 OK
+
+[1m1/1[0m [32m====================[0m[37m[0m [1m0s[0m 23ms/step
+[1m1/1[0m [32m====================[0m[37m[0m [1m0s[0m 46ms/step
+INFO:     127.0.0.1:60458 - "POST /predict?debug=true HTTP/1.1" 200 OK

@@ -1,0 +1,79 @@
+EDA Report for C:\Users\sayag\OneDrive\Documentos\UCAB Clases\6TO SEMESTRE\IA\Proyecto 1\ProyectoIAPrediccionRiesgoCancer\data\processed\cleaned_dataset.csv
+
+Shape: (4969, 14)
+
+Column types:
+age                          int64
+gender                      object
+bmi                        float64
+alcohol_consumption         object
+smoking_status              object
+hepatitis_b                  int64
+hepatitis_c                  int64
+liver_function_score       float64
+alpha_fetoprotein_level    float64
+cirrhosis_history            int64
+family_history_cancer        int64
+physical_activity_level     object
+diabetes                     int64
+liver_cancer                 int64
+dtype: object
+
+Missing values per column:
+age                        0
+gender                     0
+bmi                        0
+alcohol_consumption        0
+smoking_status             0
+hepatitis_b                0
+hepatitis_c                0
+liver_function_score       0
+alpha_fetoprotein_level    0
+cirrhosis_history          0
+family_history_cancer      0
+physical_activity_level    0
+diabetes                   0
+liver_cancer               0
+dtype: int64
+
+Class balance (target):
+liver_cancer
+0    3885
+1    1084
+Name: count, dtype: int64
+
+Descriptive stats (numerical):
+               age          bmi  hepatitis_b  ...  family_history_cancer     diabetes  liver_cancer
+count  4969.000000  4969.000000   4969.00000  ...            4969.000000  4969.000000   4969.000000
+mean     51.811028    11.486657      0.15154  ...               0.241699     0.198632      0.218153
+std      21.780163    11.143574      0.35861  ...               0.428156     0.399010      0.413033
+min       3.000000     0.000000      0.00000  ...               0.000000     0.000000      0.000000
+25%      39.000000     3.900000      0.00000  ...               0.000000     0.000000      0.000000
+50%      55.000000     7.000000      0.00000  ...               0.000000     0.000000      0.000000
+75%      69.000000    17.500000      0.00000  ...               0.000000     0.000000      0.000000
+max      84.000000    43.700000      1.00000  ...               1.000000     1.000000      1.000000
+
+[8 rows x 10 columns]
+
+Descriptive stats (categorical):
+        gender alcohol_consumption smoking_status physical_activity_level
+count     4969                4969           4969                    4969
+unique       2                   3              3                       3
+top     Female               Never          Never                Moderate
+freq      2489                1998           2391                    2014
+
+Correlation matrix (numerical):
+                              age       bmi  hepatitis_b  ...  family_history_cancer  diabetes  liver_cancer
+age                      1.000000  0.003014     0.019027  ...              -0.024953 -0.016294      0.113530
+bmi                      0.003014  1.000000    -0.014469  ...              -0.005264  0.009202      0.200838
+hepatitis_b              0.019027 -0.014469     1.000000  ...               0.003934  0.003419      0.198045
+hepatitis_c              0.012772 -0.014435    -0.015783  ...               0.015494  0.002145      0.185170
+liver_function_score    -0.000657 -0.011084    -0.009299  ...               0.005198 -0.015204     -0.076916
+alpha_fetoprotein_level  0.010167 -0.023083     0.004292  ...               0.007602  0.009858      0.095246
+cirrhosis_history        0.008830  0.006998    -0.005637  ...               0.008157 -0.002575      0.253953
+family_history_cancer   -0.024953 -0.005264     0.003934  ...               1.000000 -0.007725      0.231060
+diabetes                -0.016294  0.009202     0.003419  ...              -0.007725  1.000000      0.231675
+liver_cancer             0.113530  0.200838     0.198045  ...               0.231060  0.231675      1.000000
+
+[10 rows x 10 columns]
+

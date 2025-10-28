@@ -1,0 +1,24 @@
+{
+  "feature_names": [
+    "age",
+    "bmi",
+    "liver_function_score",
+    "alpha_fetoprotein_level",
+    "gender_Female",
+    "gender_Male",
+    "alcohol_consumption_Never",
+    "alcohol_consumption_Occasional",
+    "alcohol_consumption_Regular",
+    "smoking_status_Current",
+    "smoking_status_Former",
+    "smoking_status_Never",
+    "physical_activity_level_High",
+    "physical_activity_level_Low",
+    "physical_activity_level_Moderate",
+    "hepatitis_b",
+    "hepatitis_c",
+    "cirrhosis_history",
+    "family_history_cancer",
+    "diabetes"
+  ]
+}
