@@ -62,7 +62,7 @@ def train_and_evaluate(root_dir: str) -> None:
         verbose=1,
     )
 
-    # Best model already restored via EarlyStopping
+    
     # Evaluate
     test_metrics = model.evaluate(X_test_t, y_test.values, verbose=0)
     y_prob = model.predict(X_test_t, verbose=0).ravel()

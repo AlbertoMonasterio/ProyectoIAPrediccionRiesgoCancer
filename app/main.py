@@ -47,7 +47,6 @@ except Exception:
 # Pydantic model que refleja las columnas de entrada
 class PatientData(BaseModel):
     age: float
-    # accept height (cm) and weight (kg) instead of BMI for user-friendly input
     height_cm: float
     weight_kg: float
     liver_function_score: float
@@ -75,7 +74,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Servir frontend estático (index.html) desde / para facilitar pruebas locales
+# Servir frontend estático (index.html)
 FRONTEND_DIR = os.path.join(ROOT, "frontend")
 if os.path.isdir(FRONTEND_DIR):
     # mount static files under /static and serve index.html at /
@@ -84,7 +83,6 @@ if os.path.isdir(FRONTEND_DIR):
 
 @app.get("/")
 def index():
-    # return the frontend index.html
     from fastapi.responses import FileResponse
     index_path = os.path.join(FRONTEND_DIR, "index.html")
     return FileResponse(index_path)
@@ -147,9 +145,9 @@ def predict(data: PatientData, debug: bool = False):
             if s in mapping:
                 return mapping[s]
             low = s.lower()
-            if low in allowed_map:  # ya viene en EN (cualquier casing)
+            if low in allowed_map: 
                 return allowed_map[low]
-            # fallback case-insensitive contra mapping
+           
             for k, v in mapping.items():
                 if k.lower() == low:
                     return v
@@ -161,9 +159,8 @@ def predict(data: PatientData, debug: bool = False):
             return normalize_choice(value, syn_alcohol, allowed_map)
 
     except Exception:
-        # si algo falla, seguimos sin normalizar (preproc.handle_unknown='ignore' mitigará)
         allowed = {}
-        normalize = lambda v, syn, mapping: v  # type: ignore
+        normalize = lambda v, syn, mapping: v  
         def normalize_alcohol(v, m):
             return v
         syn_gender = syn_alcohol = syn_smoke = syn_activity = {}
@@ -206,8 +203,7 @@ def predict(data: PatientData, debug: bool = False):
     result = {"risk_pct": pct, "action": action}
     if debug:
         result["normalized_input"] = row
-        # Incluir categorías one-hot activas por columna categórica (robusto y sin ambigüedad de underscores)
-        try:
+        # Incluir categorías one-hot activas por columna categórica 
             from sklearn.preprocessing import OneHotEncoder  # type: ignore
             ohe = preproc.named_transformers_.get("cat")
             cat_cols = ["gender", "alcohol_consumption", "smoking_status", "physical_activity_level"]

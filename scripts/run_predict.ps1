@@ -8,22 +8,22 @@ Uso: Ejecutar desde la raíz del repo en PowerShell: .\scripts\run_predict.ps1
 param(
     # Segundos máximos a esperar por la respuesta del servidor
     [int]$WaitSeconds = 30,
-    # Ruta explícita al python del venv (opcional). Si se especifica, se usará esta por encima de autodetección
+    # Ruta opcional al ejecutable python del venv
     [string]$PythonPath
 )
 
 Set-StrictMode -Version Latest
 
-# Rutas posibles al ejecutable python del venv (añade más si tu equipo usa otra convención)
+
 ## Determine repository root (parent of the scripts folder)
 $repoRoot = Split-Path -Parent $PSScriptRoot
 
-# Rutas posibles al ejecutable python del venv (añade más si tu equipo usa otra convención)
+# Rutas posibles al ejecutable python del venv 
 $candidates = @(
     # Preferir primero el venv corto del usuario
     'C:\Users\sayag\venvs\iaproj\Scripts\python.exe',
     'C:\venv\projenv\Scripts\python.exe',
-    # y luego venvs dentro del repo (que pueden tener problemas de ruta larga)
+    # y luego venvs dentro del repo 
     [System.IO.Path]::Combine($repoRoot, '.venv', 'Scripts', 'python.exe'),
     [System.IO.Path]::Combine($repoRoot, 'venv', 'Scripts', 'python.exe')
 )

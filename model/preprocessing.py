@@ -23,8 +23,7 @@ def load_cleaned_dataset(root_dir: str) -> pd.DataFrame:
 
 
 def make_preprocessor() -> ColumnTransformer:
-    # scikit-learn renamed the `sparse` argument to `sparse_output` in newer versions.
-    # Use `sparse_output=False` to get a dense array output and maintain compatibility.
+   
     ohe = OneHotEncoder(handle_unknown="ignore", sparse_output=False, drop=None)
     scaler = StandardScaler()
 
@@ -58,7 +57,7 @@ def fit_transform_preprocessor(pre: ColumnTransformer, X_train: pd.DataFrame, X_
     cat_feature_names = []
     try:
         ohe: OneHotEncoder = pre.named_transformers_["cat"]
-        # Newer scikit-learn
+        
         if hasattr(ohe, "get_feature_names_out"):
             cat_feature_names = ohe.get_feature_names_out(CAT_COLS).tolist()
         else:
