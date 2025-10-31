@@ -10,10 +10,12 @@ import json
 import pandas as pd
 from tensorflow import keras
 
+# Ruta raíz del proyecto
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 def _get_latest_artifact_dir(root: str):
+    # Busca el directorio de artefactos más reciente
     pattern = os.path.join(root, "saved_artifacts", "model_v*")
     versions = glob.glob(pattern)
     if not versions:
@@ -26,7 +28,7 @@ ARTIFACT_DIR = _get_latest_artifact_dir(ROOT)
 if ARTIFACT_DIR is None:
     raise RuntimeError("No saved_artifacts found. Entrena el modelo primero para crear artefactos.")
 
-# Cargar artefactos al inicio
+# Cargar modelo y preprocesador entrenados
 MODEL_PATH = os.path.join(ARTIFACT_DIR, "model.keras")
 PREPROC_PATH = os.path.join(ARTIFACT_DIR, "preprocessor.pkl")
 
@@ -46,6 +48,7 @@ except Exception:
 
 # Pydantic model que refleja las columnas de entrada
 class PatientData(BaseModel):
+    # Modelo de datos de entrada para la predicción
     age: float
     height_cm: float
     weight_kg: float
@@ -64,8 +67,7 @@ class PatientData(BaseModel):
 
 app = FastAPI(title="Predicción Riesgo Cáncer Hígado - API")
 
-# Allow CORS for frontend apps during development. For production, lock this down to the
-# specific origins that will host the frontend.
+# Permitir CORS para desarrollo (frontend local)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -74,15 +76,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Servir frontend estático (index.html)
+# Servir frontend estático (index.html y archivos en /static)
 FRONTEND_DIR = os.path.join(ROOT, "frontend")
 if os.path.isdir(FRONTEND_DIR):
-    # mount static files under /static and serve index.html at /
     app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
 
 
 @app.get("/")
 def index():
+    # Endpoint raíz: sirve el archivo index.html del frontend
     from fastapi.responses import FileResponse
     index_path = os.path.join(FRONTEND_DIR, "index.html")
     return FileResponse(index_path)
@@ -90,14 +92,13 @@ def index():
 
 @app.get("/health")
 def health():
+    # Endpoint de salud: confirma que la API y los artefactos están disponibles
     return {"status": "ok", "artifact_dir": ARTIFACT_DIR}
 
 
 @app.get("/meta")
 def meta():
-    """Devuelve metadatos del modelo para alinear el frontend: columnas categóricas y sus categorías,
-    además de columnas numéricas y binarias (si aplica).
-    """
+    # Devuelve metadatos del modelo para alinear el frontend
     cat_cols = ["gender", "alcohol_consumption", "smoking_status", "physical_activity_level"]
     categories = {}
     try:
@@ -115,14 +116,16 @@ def meta():
 
 @app.post("/predict")
 def predict(data: PatientData, debug: bool = False):
-    # Convertir los inputs: calcular BMI a partir de altura y peso y crear el dict esperado
+    # Endpoint principal de predicción
+    # Recibe datos de paciente, normaliza y transforma los inputs, ejecuta el modelo y devuelve el riesgo estimado
     try:
+        # Calcular BMI a partir de altura y peso
         height_m = data.height_cm / 100.0
         bmi = data.weight_kg / (height_m ** 2) if height_m > 0 else 0.0
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Error calculando BMI: {e}")
 
-    # Normalización de categorías: mapeo directo de etiquetas fijas del formulario (ES) a categorías del modelo (EN)
+    # Normalización de categorías: mapeo de etiquetas del formulario (ES) a categorías del modelo (EN)
     try:
         from sklearn.preprocessing import OneHotEncoder  # type: ignore
         ohe = preproc.named_transformers_.get("cat")
@@ -132,13 +135,14 @@ def predict(data: PatientData, debug: bool = False):
             for col, cats in zip(cat_cols, ohe.categories_):
                 allowed[col] = {str(c).strip().lower(): str(c) for c in cats}
 
-        # Etiquetas fijas que envía el formulario (ES) -> categorías del modelo (EN)
+        # Diccionarios de sinónimos para traducir etiquetas del frontend
         syn_gender = {"Masculino": "Male", "Femenino": "Female"}
         syn_alcohol = {"Nunca": "Never", "Ocasionalmente": "Occasional", "Regularmente": "Regular"}
         syn_smoke = {"Nunca": "Never", "Ex-fumador": "Former", "Actualmente": "Current"}
         syn_activity = {"Bajo (sedentario)": "Low", "Moderado": "Moderate", "Alto (activo)": "High"}
 
         def normalize_choice(value: str, mapping: dict, allowed_map: dict):
+            # Normaliza una elección categórica usando sinónimos y mapeos permitidos
             if value is None:
                 return value
             s = str(value).strip()
@@ -147,13 +151,12 @@ def predict(data: PatientData, debug: bool = False):
             low = s.lower()
             if low in allowed_map: 
                 return allowed_map[low]
-           
             for k, v in mapping.items():
                 if k.lower() == low:
                     return v
             return s
 
-        # alias para usar abajo
+        # Alias para usar abajo
         normalize = normalize_choice
         def normalize_alcohol(value: str, allowed_map: dict):
             return normalize_choice(value, syn_alcohol, allowed_map)
@@ -165,6 +168,7 @@ def predict(data: PatientData, debug: bool = False):
             return v
         syn_gender = syn_alcohol = syn_smoke = syn_activity = {}
 
+    # Construir el diccionario de entrada para el modelo
     row = {
         "age": data.age,
         "bmi": bmi,
@@ -183,11 +187,13 @@ def predict(data: PatientData, debug: bool = False):
 
     df = pd.DataFrame([row])
 
+    # Transformar los datos usando el preprocesador
     try:
         X_t = preproc.transform(df)
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Error en preprocesamiento: {e}")
 
+    # Ejecutar la predicción con el modelo
     try:
         prob = float(model.predict(X_t).ravel()[0])
     except Exception as e:
@@ -195,6 +201,7 @@ def predict(data: PatientData, debug: bool = False):
 
     pct = round(prob * 100, 2)
 
+    # Decisión de acción según el riesgo
     if pct <= 50:
         action = "Recomendación de seguimiento/chequeos."
     else:
@@ -204,6 +211,7 @@ def predict(data: PatientData, debug: bool = False):
     if debug:
         result["normalized_input"] = row
         # Incluir categorías one-hot activas por columna categórica 
+        try:
             from sklearn.preprocessing import OneHotEncoder  # type: ignore
             ohe = preproc.named_transformers_.get("cat")
             cat_cols = ["gender", "alcohol_consumption", "smoking_status", "physical_activity_level"]
@@ -230,7 +238,6 @@ def predict(data: PatientData, debug: bool = False):
                 for n in candidates:
                     i = idx_map[n]
                     if float(cat_row[i]) >= 0.5:
-                        # quitar prefijo exacto del nombre en vez de split por '_'
                         chosen = n[len(prefix):]
                         break
                 active[col] = chosen
