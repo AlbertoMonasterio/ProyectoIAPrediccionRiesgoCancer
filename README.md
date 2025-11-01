@@ -168,15 +168,6 @@ Si tras esto faltara algún archivo necesario, revisa la salida del entrenamient
 
 ---
 
-## 8) Notas finales y recomendaciones
-
-- No es recomendable subir modelos pesados al repo. Para compartir artefactos entre compañeros usa un storage (Drive, S3) y documenta un script `scripts/download_artifacts.ps1` si fuese necesario.
-- Si encuentras errores al cargar artefactos, adjunta las últimas líneas de los logs (en `logs/`) para diagnóstico.
-
-Si quieres, puedo además:
-
-- Añadir un pequeño script `scripts/check_artifacts.ps1` que verifique la presencia de `model.keras` y `preprocessor.pkl` y devuelva un mensaje claro.
-- Ejecutar un entrenamiento corto de prueba (si quieres que lo haga aquí, dime si puedo lanzar comandos en tu entorno).
 
 ---
 

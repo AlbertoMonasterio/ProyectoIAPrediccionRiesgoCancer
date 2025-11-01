@@ -1,0 +1,33 @@
+INFO:     127.0.0.1:53409 - "GET /?blank=1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53409 - "GET /static/style.css HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:61360 - "GET /static/app.js?v=20251028 HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:61360 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+
+[1m1/1[0m [32m====================[0m[37m[0m [1m0s[0m 182ms/step
+[1m1/1[0m [32m====================[0m[37m[0m [1m0s[0m 205ms/step
+INFO:     127.0.0.1:62733 - "POST /predict HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58952 - "GET /.well-known/appspecific/com.chrome.devtools.json HTTP/1.1" 404 Not Found
+
+[1m1/1[0m [32m====================[0m[37m[0m [1m0s[0m 35ms/step
+[1m1/1[0m [32m====================[0m[37m[0m [1m0s[0m 59ms/step
+INFO:     127.0.0.1:52720 - "POST /predict HTTP/1.1" 200 OK
+
+[1m1/1[0m [32m====================[0m[37m[0m [1m0s[0m 27ms/step
+[1m1/1[0m [32m====================[0m[37m[0m [1m0s[0m 58ms/step
+INFO:     127.0.0.1:52720 - "POST /predict HTTP/1.1" 200 OK
+
+[1m1/1[0m [32m====================[0m[37m[0m [1m0s[0m 28ms/step
+[1m1/1[0m [32m====================[0m[37m[0m [1m0s[0m 53ms/step
+INFO:     127.0.0.1:52720 - "POST /predict HTTP/1.1" 200 OK
+
+[1m1/1[0m [32m====================[0m[37m[0m [1m0s[0m 31ms/step
+[1m1/1[0m [32m====================[0m[37m[0m [1m0s[0m 63ms/step
+INFO:     127.0.0.1:52720 - "POST /predict HTTP/1.1" 200 OK
+
+[1m1/1[0m [32m====================[0m[37m[0m [1m0s[0m 26ms/step
+[1m1/1[0m [32m====================[0m[37m[0m [1m0s[0m 57ms/step
+INFO:     127.0.0.1:52720 - "POST /predict HTTP/1.1" 200 OK
+
+[1m1/1[0m [32m====================[0m[37m[0m [1m0s[0m 27ms/step
+[1m1/1[0m [32m====================[0m[37m[0m [1m0s[0m 67ms/step
+INFO:     127.0.0.1:52468 - "POST /predict HTTP/1.1" 200 OK
