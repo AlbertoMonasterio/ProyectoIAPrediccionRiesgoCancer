@@ -61,9 +61,25 @@ C:\venv\projenv\Scripts\python -m pip install -r requirements.txt
 
 4) Alternativa: arrancar Uvicorn manualmente (útil para ver logs directo en la terminal):
 
+
 ```powershell
 C:\venv\projenv\Scripts\python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 ```
+
+**Nota sobre los warnings y el tiempo de arranque:**
+
+Es normal que al iniciar el servidor (especialmente usando el script PowerShell) aparezcan mensajes como:
+
+```
+WARNING: TCP connect to (127.0.0.1 : 8000) failed
+```
+
+Esto ocurre porque el script verifica repetidamente si la API está lista antes de abrir el navegador. Si el modelo es grande, la carga puede tardar varios segundos y los warnings se mostrarán hasta que el servidor esté disponible. No indican un error, solo que el backend aún está arrancando.
+
+**Recomendación:**
+- Espera hasta que se abra el navegador o veas el mensaje "Servidor iniciado".
+- Si el modelo es muy grande, el arranque puede tardar más de 10 segundos.
+- Si tienes dudas, revisa los logs en la carpeta `logs/`.
 
 Visita `http://127.0.0.1:8000/docs` para la documentación interactiva (Swagger UI) o abre `/` para la UI incluida.
 

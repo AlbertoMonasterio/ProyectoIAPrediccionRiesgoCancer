@@ -74,7 +74,11 @@ if (-not (Test-Path $modelPath) -or -not (Test-Path $preprocPath)) {
 
 # Iniciar uvicorn en un proceso separado
 $args = @('-m', 'uvicorn', 'app.main:app', '--host', '127.0.0.1', '--port', '8000')
+
+# Mensaje amigable para el usuario sobre el arranque y los warnings
 Write-Host "Iniciando servidor uvicorn..."
+Write-Host "Esperando a que el modelo y la API se inicialicen. Esto puede tardar varios segundos si el modelo es grande."
+Write-Host "Si ves varios 'WARNING: TCP connect...', espera hasta que se abra el navegador o aparezca 'Servidor iniciado'.\n"
 
 # Capturar logs para diagnóstico si el proceso termina prematuramente
 $logsDir = Join-Path $repoRoot 'logs'
